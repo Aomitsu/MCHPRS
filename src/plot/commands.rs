@@ -14,7 +14,7 @@ use std::time::{Duration, Instant};
 
 impl Plot {
     /// Handles a command that starts with `/plot` or `/p`
-    fn handle_plot_command(&mut self, player: usize, command: &str, _args: Vec<&str>) {
+    fn handle_plot_command(&mut self, player: usize, command: &str, args: Vec<&str>) {
         let plot_x = self.players[player].x as i32 >> 8;
         let plot_z = self.players[player].z as i32 >> 8;
         match command {
@@ -49,6 +49,22 @@ impl Plot {
             "middle" => {
                 let center = Plot::get_center(plot_x, plot_z);
                 self.players[player].teleport(center.0, 64.0, center.1);
+            }
+            "goto" | "go" => {
+                if args.is_empty() || args.len() < 2 {
+                    self.players[player].send_error_message("Invalid number of arguments!");
+                } else {
+                    let x = args[0].split('.').next().unwrap().parse::<i32>();
+                    let y = args[1].split('.').next().unwrap().parse::<i32>();
+
+                    if x.is_ok() && y.is_ok() {
+                        let center = Plot::get_center(x.unwrap(), y.unwrap());
+                        self.players[player].teleport(center.0, 64.0, center.1);
+                    } else {
+                        self.players[player]
+                            .send_error_message("You must insert two integers");
+                    }
+                }
             }
             _ => self.players[player].send_error_message("Invalid argument for /plot"),
         }
@@ -290,7 +306,7 @@ lazy_static! {
             // 6: /plot
             Node {
                 flags: (CommandFlags::LITERAL).bits() as i8,
-                children: vec![7, 8, 9, 10, 38, 39, 40],
+                children: vec![7, 8, 9, 10, 38, 39, 40, 41, 43],
                 redirect_node: None,
                 name: Some("plot"),
                 parser: None,
@@ -565,6 +581,30 @@ lazy_static! {
                 children: vec![],
                 redirect_node: None,
                 name: Some("middle"),
+                parser: None,
+            },
+            // 41: /plot goto
+            Node {
+                flags: (CommandFlags::LITERAL | CommandFlags::EXECUTABLE).bits() as i8,
+                children: vec![42],
+                redirect_node: None,
+                name: Some("goto"),
+                parser: None,
+            },
+            // 42: /plot goto <plot x> <plot y>
+            Node {
+                flags: (CommandFlags::ARGUMENT | CommandFlags::EXECUTABLE).bits() as i8,
+                children: vec![],
+                redirect_node: None,
+                name: Some("plot x, plot y"),
+                parser: Some(Parser::Vec2),
+            },
+            // 43: /plot go <plot x> <plot y>
+            Node {
+                flags: (CommandFlags::LITERAL | CommandFlags::REDIRECT).bits() as i8,
+                children: vec![],
+                redirect_node: Some(41),
+                name: Some("go"),
                 parser: None,
             },
         ],

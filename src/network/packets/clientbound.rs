@@ -236,6 +236,7 @@ impl ClientBoundPacket for C0EChatMessage {
 pub enum C10DeclareCommandsNodeParser {
     Entity(i8),
     Vec3,
+    Vec2,
     Integer(i32, i32),
     Float(f32, f32),
     BlockPos,
@@ -251,6 +252,7 @@ impl C10DeclareCommandsNodeParser {
                 buf.write_byte(*flags);
             }
             Vec3 => buf.write_string(32767, "minecraft:vec3"),
+            Vec2 => buf.write_string(32767, "minecraft:vec2"),
             BlockPos => buf.write_string(32767, "minecraft:block_pos"),
             BlockState => buf.write_string(32767, "minecraft:block_state"),
             Integer(min, max) => {
