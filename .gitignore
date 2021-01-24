@@ -4,3 +4,5 @@ target/
 test_proxy/
 generators
 world/
+Config.toml
+output.log
